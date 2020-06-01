@@ -14,4 +14,4 @@ A simple PAC server
 
 # TODO
 
-- Configuration file support
+- Allow user to change configuration through configuration file.
