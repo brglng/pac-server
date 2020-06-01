@@ -37,5 +37,4 @@ async def get_file(request, filename):
 def main():
     os.makedirs(CACHE_DIR, exist_ok=True)
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    gfwlist2pac(str(CACHE_DIR / 'pac'), 'PROXY 127.0.0.1:8118;')
     app.run(host='0.0.0.0', port=12345, workers=1)
