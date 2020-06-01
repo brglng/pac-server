@@ -17,7 +17,10 @@ CACHE_DIR = Path('~/.cache/pac-server').expanduser()
 
 async def generate_pac_task():
     while True:
-        await asyncio.get_event_loop().run_in_executor(None, gfwlist2pac, str(CACHE_DIR / 'pac'), 'PROXY 127.0.0.1:8118;')
+        try:
+            await asyncio.get_event_loop().run_in_executor(None, gfwlist2pac, str(CACHE_DIR / 'pac'), 'PROXY 127.0.0.1:8118;')
+        except Exception as e:
+            logger.exception(e)
         await asyncio.sleep(60)
 
 
