@@ -27,7 +27,7 @@ async def run_generate_pac_task(app, loop):
 
 
 @app.route('/<filename>', methods=['GET'])
-async def dashboard(request, filename):
+async def get_file(request, filename):
     try:
         return await sanic.response.file(str((CACHE_DIR / filename)), headers={'Access-Control-Allow-Origin': request.remote_addr})
     except FileNotFoundError:
