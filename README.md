@@ -11,3 +11,7 @@ A simple PAC server
 # Run
 
     pac-server
+
+# TODO
+
+- Configuration file support
