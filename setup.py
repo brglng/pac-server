@@ -10,10 +10,10 @@ setup(
     exclude_package_data={'': ['.git', '.gitignore']},
 
     install_requires=[
-        'aiohttp>=3.6,<4',
-        'cchardet>=2.1,<3',
-        'aiodns>=2.0,<3',
-        'sanic>-19.0',
+        'aiohttp',
+        'cchardet',
+        'aiodns',
+        'sanic',
     ],
 
     author='Zhaosheng Pan',
