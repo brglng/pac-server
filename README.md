@@ -11,7 +11,3 @@ A simple PAC server
 # Run
 
     pac-server
-
-# TODO
-
-- Allow user to change configuration through configuration file.

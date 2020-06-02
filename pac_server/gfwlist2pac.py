@@ -8,16 +8,16 @@ from pathlib import Path
 
 __all__ = ['gfwlist2pac']
 logger = logging.getLogger(__name__)
-GFWLIST_URL = 'https://github.com/gfwlist/gfwlist/raw/master/gfwlist.txt'
 
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument('-g', '--gfwlist', dest='gfwlist',
-                        help='path to gfwlist', metavar='GFWLIST')
+    parser.add_argument('--gfwlist', dest='gfwlist',
+                        help='path to gfwlist', metavar='GFWLIST',
+                        default='https://github.com/gfwlist/gfwlist/raw/master/gfwlist.txt')
     parser.add_argument('-o', '--output', dest='output', required=True,
                         help='path to output pac', metavar='PAC')
-    parser.add_argument('-p', '--proxy', dest='proxy', required=True,
+    parser.add_argument('--proxy', dest='proxy', required=True,
                         help='the proxy parameter in the pac file, '
                              'for example, "SOCKS5 127.0.0.1:1080;"',
                         metavar='PROXY')
@@ -59,12 +59,10 @@ def add_domain_to_set(s, something):
         s.add(hostname)
 
 
-def combine_lists(content, user_rule=None):
-    builtin_rules = open(Path(__file__).parent / 'resources' / 'builtin.txt').read().splitlines(False)
+def combine_lists(content, user_rules=()):
     gfwlist = content.splitlines(False)
-    gfwlist.extend(builtin_rules)
-    if user_rule:
-        gfwlist.extend(user_rule.splitlines(False))
+    if user_rules:
+        gfwlist.extend(user_rules)
     return gfwlist
 
 
@@ -147,34 +145,20 @@ def generate_pac_precise(rules, proxy):
     return proxy_content
 
 
-def gfwlist2pac(pac, proxy, gfwlist=None, user_rule=None, precise=False):
-    if gfwlist:
-        gfwlist_parts = urllib.parse.urlsplit(gfwlist)
-        if not gfwlist_parts.scheme or not gfwlist_parts.netloc:
-            # It's not an URL, deal it as local file
-            with open(gfwlist, 'r') as f:
-                content = f.read()
-        else:
-            # Yeah, it's an URL, try to download it
-            logger.info('Downloading gfwlist from %s' % gfwlist)
-            content = urllib.request.urlopen(gfwlist, timeout=10).read().decode()
+def gfwlist2pac(pac, proxy, gfwlist, user_rules=(), precise=False):
+    gfwlist_parts = urllib.parse.urlsplit(gfwlist)
+    if not gfwlist_parts.scheme or not gfwlist_parts.netloc:
+        # It's not a URL, deal it as local file
+        logger.info('Reading gfwlist from %s' % gfwlist)
+        with open(gfwlist, 'r') as f:
+            content = f.read()
     else:
-        logger.info('Downloading gfwlist from %s' % GFWLIST_URL)
-        content = urllib.request.urlopen(GFWLIST_URL, timeout=10).read().decode()
-
-    if user_rule:
-        userrule_parts = urllib.parse.urlsplit(user_rule)
-        if not userrule_parts.scheme or not userrule_parts.netloc:
-            # It's not an URL, deal it as local file
-            with open(user_rule, 'r') as f:
-                user_rule = f.read()
-        else:
-            # Yeah, it's an URL, try to download it
-            logger.info('Downloading user rules file from %s' % user_rule)
-            user_rule = urllib.request.urlopen(user_rule, timeout=10).read().decode()
+        # Yeah, it's a URL, try to download it
+        logger.info('Downloading gfwlist from %s' % gfwlist)
+        content = urllib.request.urlopen(gfwlist, timeout=10).read().decode()
 
     content = decode_gfwlist(content)
-    gfw_list = combine_lists(content, user_rule)
+    gfw_list = combine_lists(content, user_rules)
     if precise:
         pac_content = generate_pac_precise(gfw_list, proxy)
     else:
@@ -188,4 +172,18 @@ def gfwlist2pac(pac, proxy, gfwlist=None, user_rule=None, precise=False):
 
 if __name__ == '__main__':
     args = parse_args()
-    gfwlist2pac(args.output, args.proxy, args.gfwlist, args.user_rule, args.precise)
+    if args.user_rule:
+        user_rule_parts = urllib.parse.urlsplit(args.user_rule)
+        if not user_rule_parts.scheme or not user_rule_parts.netloc:
+            # It's not a URL, deal it as local file
+            logger.info('Reading user rules from %s' % args.user_rule)
+            with open(args.user_rule, 'r') as f:
+                user_rules = f.read().splitlines(False)
+        else:
+            # Yeah, it's a URL, try to download it
+            logger.info('Downloading user rules from %s' % args.user_rule)
+            user_rules = urllib.request.urlopen(args.user_rule, timeout=10).read().decode().splitlines(False)
+    else:
+        user_rules = []
+
+    gfwlist2pac(args.output, args.proxy, args.gfwlist, user_rules, args.precise)
