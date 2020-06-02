@@ -21,9 +21,10 @@ On first run, the program will generate its configuration file at
 [server]
 host = 127.0.0.1
 port = 1091
+pac-path = /pac
+update-interval = 43200
 
 [pac]
-path = /pac
 proxy = PROXY 127.0.0.1:8118;
 gfwlist = https://github.com/gfwlist/gfwlist/raw/master/gfwlist.txt
 precise = no

@@ -21,7 +21,7 @@ default_config['server'] = {
     'host': '127.0.0.1',
     'port': '1091',
     'pac-path': '/pac',
-    'update-interval': '3600',
+    'update-interval': '43200',
 }
 default_config['pac'] = {
     'proxy': 'PROXY 127.0.0.1:8118;',
@@ -87,7 +87,7 @@ def main():
     g_config['server']['host'] = config.get('server', 'host', fallback=default_config['server']['host'])
     g_config['server']['port'] = config.getint('server', 'port', fallback=int(default_config['server']['port']))
     g_config['server']['pac-path'] = config.get('server', 'pac-path', fallback=default_config['server']['pac-path'])
-    g_config['server']['update-interval'] = config.getint('server', 'pac-path', fallback=int(default_config['server']['update-interval']))
+    g_config['server']['update-interval'] = config.getint('server', 'update-interval', fallback=int(default_config['server']['update-interval']))
     g_config['pac'] = {}
     g_config['pac']['proxy'] = config.get('pac', 'proxy', fallback=default_config['pac']['proxy'])
     g_config['pac']['gfwlist'] = config.get('pac', 'gfwlist', fallback=default_config['pac']['gfwlist'])
