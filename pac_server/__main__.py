@@ -27,22 +27,23 @@ default_config['pac'] = {
     'gfwlist': 'https://github.com/gfwlist/gfwlist/raw/master/gfwlist.txt',
     'precise': 'no',
 }
-default_config['user-rules'] = {
-    '||google.com': '',
-    '||google.co.jp': '',
-    '||google.co.hk': '',
-    '||bbc.co.uk': '',
-    '||googleapis.com': '',
-    '||googlesyndication.com': '',
-    '||github.com': '',
-    '||wikipedia.org': '',
-}
+default_user_rules = '''[user-rules]
+||google.com
+||google.co.jp
+||google.co.hk
+||bbc.co.uk
+||googleapis.com
+||googlesyndication.com
+||github.com
+||wikipedia.org
+'''
 
 g_config = {}
 
 
 async def generate_pac_task():
     while True:
+        logger.info('user-rules: %s', g_config['user-rules'])
         try:
             await asyncio.get_event_loop().run_in_executor(
                 None,
@@ -51,7 +52,7 @@ async def generate_pac_task():
                 g_config['pac']['proxy'],
                 g_config['pac']['gfwlist'],
                 g_config['user-rules'],
-                g_config['precise']
+                g_config['pac']['precise']
             )
         except Exception as e:
             logger.exception(e)
@@ -77,6 +78,7 @@ def main():
     if not (CONFIG_FILE).exists():
         with open(CONFIG_FILE, 'w') as f:
             default_config.write(f)
+            f.write(default_user_rules)
 
     config = configparser.ConfigParser(allow_no_value=True)
     config.read(CONFIG_FILE)
@@ -87,12 +89,23 @@ def main():
     g_config['pac']['path'] = config.get('pac', 'path', fallback=default_config['pac']['path'])
     g_config['pac']['proxy'] = config.get('pac', 'proxy', fallback=default_config['pac']['proxy'])
     g_config['pac']['gfwlist'] = config.get('pac', 'gfwlist', fallback=default_config['pac']['gfwlist'])
-    g_config['pac']['precise'] = config.get('pac', 'precise', fallback=default_config['pac']['precise'])
+
+    precise = config.get('pac', 'precise', fallback=default_config['pac']['precise'])
+    if precise in ('yes', 'true', 'Yes', 'True'):
+        g_config['pac']['precise'] = True
+    elif precise in ('no', 'false', 'No', 'False'):
+        g_config['pac']['precise'] = False
+    elif int(precise) != 0:
+        g_config['pac']['precise'] = True
+    elif int(precise) == 0:
+        g_config['pac']['precise'] = False
+    else:
+        raise ValueError('invalid config: precise = %s', precise)
+
     g_config['user-rules'] = []
     if 'user-rules' in config:
         for user_rule in config['user-rules']:
             g_config['user-rules'].append(user_rule)
-    g_config['precise'] = config.getboolean('pac', 'precise', fallback=False)
 
     app.run(host=g_config['server']['host'], port=g_config['server']['port'], workers=1)
 

@@ -138,10 +138,9 @@ def generate_pac_precise(rules, proxy):
         return None
     # render the pac file
     proxy_content = open(Path(__file__).parent / 'resources' / 'abp.js').read()
-    rules = filter(grep_rule, rules)
+    rules = list(filter(grep_rule, rules))
     proxy_content = proxy_content.replace('__PROXY__', json.dumps(str(proxy)))
-    proxy_content = proxy_content.replace('__RULES__',
-                                          json.dumps(rules, indent=2))
+    proxy_content = proxy_content.replace('__RULES__', json.dumps(rules, indent=2))
     return proxy_content
 
 
