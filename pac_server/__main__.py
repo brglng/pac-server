@@ -19,10 +19,11 @@ CONFIG_FILE = CONFIG_DIR / 'config.ini'
 default_config = configparser.ConfigParser(allow_no_value=True)
 default_config['server'] = {
     'host': '127.0.0.1',
-    'port': '1091'
+    'port': '1091',
+    'pac-path': '/pac',
+    'update-interval': '3600',
 }
 default_config['pac'] = {
-    'path': '/pac',
     'proxy': 'PROXY 127.0.0.1:8118;',
     'gfwlist': 'https://github.com/gfwlist/gfwlist/raw/master/gfwlist.txt',
     'precise': 'no',
@@ -48,7 +49,7 @@ async def generate_pac_task():
             await asyncio.get_event_loop().run_in_executor(
                 None,
                 gfwlist2pac,
-                str(CACHE_DIR / g_config['pac']['path'].lstrip('/')),
+                str(CACHE_DIR / g_config['server']['pac-path'].lstrip('/')),
                 g_config['pac']['proxy'],
                 g_config['pac']['gfwlist'],
                 g_config['user-rules'],
@@ -56,7 +57,7 @@ async def generate_pac_task():
             )
         except Exception as e:
             logger.exception(e)
-        await asyncio.sleep(60)
+        await asyncio.sleep(g_config['server']['update-interval'])
 
 
 @app.listener('before_server_start')
@@ -85,8 +86,9 @@ def main():
     g_config['server'] = {}
     g_config['server']['host'] = config.get('server', 'host', fallback=default_config['server']['host'])
     g_config['server']['port'] = config.getint('server', 'port', fallback=int(default_config['server']['port']))
+    g_config['server']['pac-path'] = config.get('server', 'pac-path', fallback=default_config['server']['pac-path'])
+    g_config['server']['update-interval'] = config.getint('server', 'pac-path', fallback=int(default_config['server']['update-interval']))
     g_config['pac'] = {}
-    g_config['pac']['path'] = config.get('pac', 'path', fallback=default_config['pac']['path'])
     g_config['pac']['proxy'] = config.get('pac', 'proxy', fallback=default_config['pac']['proxy'])
     g_config['pac']['gfwlist'] = config.get('pac', 'gfwlist', fallback=default_config['pac']['gfwlist'])
 
